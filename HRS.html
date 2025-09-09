@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bug Writeups Link Organizer</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f0f4f8;
+    margin: 20px;
+    color: #333;
+  }
+  h1 {
+    color: #005a87;
+  }
+  .topic {
+    background-color: #008cba;
+    color: white;
+    cursor: pointer;
+    padding: 14px 20px;
+    margin: 10px 0;
+    border: none;
+    width: 100%;
+    text-align: left;
+    outline: none;
+    font-size: 18px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+  }
+  .topic:hover {
+    background-color: #005f6a;
+  }
+  .content {
+    padding: 10px 20px;
+    background-color: #e1ecf4;
+    border-radius: 0 0 8px 8px;
+    display: none;
+  }
+  a {
+    color: #0077cc;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  form {
+    background: white;
+    padding: 20px;
+    margin-top: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px #ccc;
+    max-width: 600px;
+  }
+  label {
+    display: block;
+    margin: 10px 0 6px 0;
+    font-weight: bold;
+  }
+  input[type="text"], textarea {
+    width: calc(100% - 24px);
+    padding: 8px 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    resize: vertical;
+  }
+  button[type="submit"] {
+    margin-top: 14px;
+    padding: 12px 20px;
+    background-color: #008cba;
+    border: none;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 8px;
+  }
+  button[type="submit"]:hover {
+    background-color: #005f6a;
+  }
+</style>
+</head>
+<body>
+
+<h1>HTTP Request Smuggling Writeups Organizer</h1>
+
+<div id="topics-container"></div>
+
+<form id="addTopicForm">
+  <h2>Add/Edit Topic</h2>
+  <label for="topicName">Topic Title:</label>
+  <input type="text" id="topicName" required placeholder="E.g. CL.TE Bug Type" />
+
+  <label for="topicLink">URL Link:</label>
+  <input type="text" id="topicLink" required placeholder="Paste the link here" />
+
+  <label for="topicContent">Description / Notes (optional):</label>
+  <textarea id="topicContent" rows="3" placeholder="Add any notes or context"></textarea>
+
+  <button type="submit">Add / Save</button>
+</form>
+
+<script>
+  const topicContainer = document.getElementById('topics-container');
+  const form = document.getElementById('addTopicForm');
+  const topicNameInput = document.getElementById('topicName');
+  const topicLinkInput = document.getElementById('topicLink');
+  const topicContentInput = document.getElementById('topicContent');
+
+  // Load topics from localStorage or use initial data
+  let topics = JSON.parse(localStorage.getItem('bugTopics')) || [
+    { title: 'CL.TE', link: 'https://blog.hacktivesecurity.com/index.php/2022/09/17/http/', content: 'How an Akamai misconfiguration earned us USD 46.000' },
+    { title: 'TE.CL', link: 'https://medium.com/@ricardoiramar/the-powerful-http-request-smuggling-af208fafa142', content: 'The Powerful HTTP Request Smuggling 💪' },
+    { title: 'CL.0', link: 'https://www.bugcrowd.com/blog/unveiling-te-0-http-request-smuggling-discovering-a-critical-vulnerability-in-thousands-of-google-cloud-websites/', content: 'Unveiling TE.0 HTTP Request Smuggling' },
+    { title: 'Desync', link: 'https://github.com/AnkitCuriosity/Write-Ups/blob/main/HTTP%20Desync%20Attack%20(Request%20Smuggling).md', content: 'HTTP Desync Attack (Request Smuggling)' },
+    { title: 'XSS', link: 'https://kleiton0x00.github.io/posts/Exploiting-HTTP-Request-Smuggling-(TE.CL)-XSS-to-website-takeover/', content: 'Exploiting HTTP Request Smuggling for XSS' },
+    { title: 'RCE', link: 'https://www.praetorian.com/blog/refresh-compromising-f5-big-ip-with-request-smuggling-cve-2023-46747/', content: 'Compromising F5 BIG-IP with Request Smuggling' },
+    { title: 'SMTP Smuggling', link: 'https://sec-consult.com/blog/detail/smtp-smuggling-spoofing-e-mails-worldwide/', content: 'SMTP Smuggling - Spoofing E-Mails Worldwide' }
+  ];
+
+  function saveTopics() {
+    localStorage.setItem('bugTopics', JSON.stringify(topics));
+  }
+
+  function createTopicElement(topic, index) {
+    const button = document.createElement('button');
+    button.className = 'topic';
+    button.textContent = topic.title;
+    button.setAttribute('aria-expanded', 'false');
+    button.addEventListener('click', () => {
+      const content = button.nextElementSibling;
+      const expanded = button.getAttribute('aria-expanded') === 'true';
+      button.setAttribute('aria-expanded', !expanded);
+      if (expanded) {
+        content.style.display = 'none';
+      } else {
+        content.style.display = 'block';
+      }
+    });
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'content';
+
+    const link = document.createElement('a');
+    link.href = topic.link;
+    link.target = '_blank';
+    link.textContent = 'Open Link';
+    contentDiv.appendChild(link);
+
+    if (topic.content && topic.content.trim() !== '') {
+      const desc = document.createElement('p');
+      desc.style.marginTop = '8px';
+      desc.textContent = topic.content;
+      contentDiv.appendChild(desc);
+    }
+
+    // Add edit button
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit';
+    editBtn.style.marginLeft = '10px';
+    editBtn.style.backgroundColor = '#ff5722';
+    editBtn.style.color = 'white';
+    editBtn.style.border = 'none';
+    editBtn.style.borderRadius = '6px';
+    editBtn.style.padding = '4px 8px';
+    editBtn.style.cursor = 'pointer';
+    editBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      topicNameInput.value = topic.title;
+      topicLinkInput.value = topic.link;
+      topicContentInput.value = topic.content;
+      form.dataset.editIndex = index;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    contentDiv.appendChild(editBtn);
+
+    return [button, contentDiv];
+  }
+
+  function renderTopics() {
+    topicContainer.innerHTML = '';
+    topics.forEach((topic, index) => {
+      const [button, contentDiv] = createTopicElement(topic, index);
+      topicContainer.appendChild(button);
+      topicContainer.appendChild(contentDiv);
+    });
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newTitle = topicNameInput.value.trim();
+    const newLink = topicLinkInput.value.trim();
+    const newContent = topicContentInput.value.trim();
+
+    if (!newTitle || !newLink) {
+      alert('Please fill in the Title and Link fields.');
+      return;
+    }
+
+    if (form.dataset.editIndex !== undefined) {
+      // Edit existing
+      const idx = parseInt(form.dataset.editIndex, 10);
+      topics[idx] = { title: newTitle, link: newLink, content: newContent };
+      delete form.dataset.editIndex;
+    } else {
+      // Add new
+      topics.push({ title: newTitle, link: newLink, content: newContent });
+    }
+
+    saveTopics();
+    renderTopics();
+    form.reset();
+  });
+
+  // Initial render on page load
+  renderTopics();
+</script>
+
+</body>
+</html>
